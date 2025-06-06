@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Firebaseチャット</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    .input-area {
+      margin-bottom: 10px;
+    }
+    #chat-log {
+      flex: 1;
+      border: 1px solid #ccc;
+      background: white;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+    }
+    .message {
+      margin-bottom: 10px;
+    }
+    .name {
+      font-weight: bold;
+      color: #3366cc;
+    }
+    input, textarea {
+      width: 100%;
+      margin-bottom: 5px;
+      padding: 8px;
+      font-size: 1em;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      font-size: 1em;
+      background-color: #3366cc;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #254d99;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="input-area">
+    <input type="text" id="name" placeholder="名前を入力" />
+    <textarea id="message" rows="3" placeholder="メッセージを入力"></textarea>
+    <button id="sendBtn">送信</button>
+  </div>
+
+  <div id="chat-log"></div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
+    // ここにFirebaseの設定情報を貼り付けてください
+const firebaseConfig = {
+  apiKey: "AIzaSyAujivlQO1I7G4Zp0jzHJri_FrXxXNIH7E",
+  authDomain: "trafficsns.firebaseapp.com",
+  databaseURL: "https://trafficsns-default-rtdb.firebaseio.com",
+  projectId: "trafficsns",
+  storageBucket: "trafficsns.firebasestorage.app",
+  messagingSenderId: "133929762000",
+  appId: "1:133929762000:web:abf53d6ae8167c7360b2d5",
+  measurementId: "G-T3XNQXKFQY"
+};
+
+    // Firebase初期化
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const chatLog = document.getElementById("chat-log");
+    const nameInput = document.getElementById("name");
+    const messageInput = document.getElementById("message");
+    const sendBtn = document.getElementById("sendBtn");
+
+    // メッセージ表示関数
+    function displayMessage(name, message) {
+      const newMessage = document.createElement("div");
+      newMessage.classList.add("message");
+      newMessage.innerHTML = `<span class="name">${name}：</span>${message}`;
+      chatLog.appendChild(newMessage);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    // データベースからチャットメッセージをリアルタイム取得
+    db.ref('messages').on('child_added', (snapshot) => {
+      const data = snapshot.val();
+      displayMessage(data.name, data.message);
+    });
+
+    // 送信処理
+    sendBtn.onclick = () => {
+      const name = nameInput.value.trim();
+      const message = messageInput.value.trim();
+      if (!name || !message) {
+        alert("名前とメッセージを入力してください。");
+        return;
+      }
+      // データベースに書き込み
+      db.ref('messages').push({ name, message });
+
+      messageInput.value = "";
+    };
+  </script>
+</body>
+</html>
