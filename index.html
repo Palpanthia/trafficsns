@@ -67,7 +67,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <script>
-    // Firebase設定
     const firebaseConfig = {
       apiKey: "AIzaSyAujivlQO1I7G4Zp0jzHJri_FrXxXNIH7E",
       authDomain: "trafficsns.firebaseapp.com",
@@ -79,7 +78,6 @@
       measurementId: "G-T3XNQXKFQY"
     };
 
-    // Firebase初期化
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
@@ -88,21 +86,29 @@
     const messageInput = document.getElementById("message");
     const sendBtn = document.getElementById("sendBtn");
 
-    // メッセージ表示関数（上に追加）
+    // メッセージ表示関数（XSS対策済み）
     function displayMessage(name, message) {
       const newMessage = document.createElement("div");
       newMessage.classList.add("message");
-      newMessage.innerHTML = `<span class="name">${name}：</span>${message}`;
-      chatLog.insertBefore(newMessage, chatLog.firstChild); // 上に表示
+
+      const nameSpan = document.createElement("span");
+      nameSpan.classList.add("name");
+      nameSpan.textContent = `${name}：`;
+
+      const messageSpan = document.createElement("span");
+      messageSpan.textContent = message;
+
+      newMessage.appendChild(nameSpan);
+      newMessage.appendChild(messageSpan);
+
+      chatLog.insertBefore(newMessage, chatLog.firstChild);
     }
 
-    // チャットログ取得
     db.ref('messages').on('child_added', (snapshot) => {
       const data = snapshot.val();
       displayMessage(data.name, data.message);
     });
 
-    // 送信ボタン処理
     sendBtn.onclick = () => {
       const name = nameInput.value.trim();
       const message = messageInput.value.trim();
