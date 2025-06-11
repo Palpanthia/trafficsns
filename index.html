@@ -104,21 +104,37 @@
       chatLog.insertBefore(newMessage, chatLog.firstChild);
     }
 
+    // チャット読み込み
     db.ref('messages').on('child_added', (snapshot) => {
       const data = snapshot.val();
       displayMessage(data.name, data.message);
     });
 
+    // 送信ボタン
     sendBtn.onclick = () => {
-      const name = nameInput.value.trim();
-      const message = messageInput.value.trim();
-      if (!name || !message) {
-        alert("名前とメッセージを入力してください。");
-        return;
-      }
-      db.ref('messages').push({ name, message });
-      messageInput.value = "";
-    };
+  const name = nameInput.value.trim();
+  const message = messageInput.value.trim();
+
+  if (!name || !message) {
+    alert("名前とメッセージを入力してください。");
+    return;
+  }
+
+  const lastSendTimeKey = `lastSendTime_${name}`;
+  const now = Date.now();
+  const lastSendTime = localStorage.getItem(lastSendTimeKey);
+
+  // まず常に送信時刻を更新
+  localStorage.setItem(lastSendTimeKey, now.toString());
+
+  if (lastSendTime && now - parseInt(lastSendTime) < 10000) {
+    alert("連続投稿は10秒待ってください。");
+    return;
+  }
+
+  db.ref('messages').push({ name, message });
+  messageInput.value = "";
+};
   </script>
 </body>
 </html>
